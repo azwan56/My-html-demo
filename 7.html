@@ -1,0 +1,375 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'STHeiti Light'}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'STHeiti Light'; min-height: 12.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="zh-CN"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;互动七巧板 (升级版)&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Noto Sans SC', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>touch-action: none;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>canvas {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: grab;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 0.75rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>canvas:active {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: grabbing;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.pattern-btn.active {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #4f46e5;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* 胜利提示弹窗样式 */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#winModal {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: opacity 0.3s ease;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="bg-slate-100 flex flex-col items-center justify-center min-h-screen p-4"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="w-full max-w-3xl mx-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h1 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-2"&gt;七巧板挑战&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="text-slate-600 mb-4"&gt;选择一个图案，然后把所有板块拼进去吧！&lt;/p&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;!-- 图案选择 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="patternSelector" class="flex justify-center space-x-2 mb-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;!-- Buttons will be inserted here by JS --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="aspect-square w-full max-w-xl mx-auto bg-white rounded-xl relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>&lt;canvas id="tangramCanvas"&gt;&lt;/canvas&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="resetButton" class="mt-6 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>重置当前关卡</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- 胜利提示弹窗 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="winModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white rounded-2xl shadow-xl p-8 text-center transform scale-95 transition-transform"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 class="text-3xl font-bold text-green-500 mb-4"&gt;太棒了！&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="text-slate-700 mb-6"&gt;你成功拼出了 &lt;span id="winPatternName" class="font-bold"&gt;&lt;/span&gt; 图案！&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="nextPatternButton" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>下一个图案</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const canvas = document.getElementById('tangramCanvas');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const ctx = canvas.getContext('2d');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const resetButton = document.getElementById('resetButton');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const patternSelector = document.getElementById('patternSelector');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const winModal = document.getElementById('winModal');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const winPatternName = document.getElementById('winPatternName');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const nextPatternButton = document.getElementById('nextPatternButton');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>let scale;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let pieces = [];</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let selectedPiece = null;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let offsetX, offsetY;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let lastClickTime = 0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let currentPatternIndex = 0;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>const SNAP_DISTANCE = 15; // 吸附距离</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 板块基础定义</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const pieceDefs = [</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#c0392b', path: [{x:0,y:0}, {x:2,y:0}, {x:1,y:1}] }, // 小三角1</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#27ae60', path: [{x:0,y:0}, {x:2,y:0}, {x:1,y:1}] }, // 小三角2</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#2980b9', path: [{x:0,y:0}, {x:2,y:2}, {x:2,y:0}] }, // 大三角1</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#f1c40f', path: [{x:0,y:0}, {x:2,y:2}, {x:0,y:2}] }, // 大三角2</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#8e44ad', path: [{x:0,y:1}, {x:1,y:2}, {x:1,y:0}, {x:0,y:1}] }, // 中三角 (调整了原点)</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#e67e22', path: [{x:0,y:0}, {x:1,y:0}, {x:1,y:1}, {x:0,y:1}] }, // 正方形</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ color: '#3498db', path: [{x:0,y:0}, {x:1,y:1}, {x:0,y:1}, {x:-1,y:0}] }<span class="Apple-converted-space">  </span>// 平行四边形</p>
+<p class="p1"><span class="Apple-converted-space">        </span>];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 图案定义</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const patterns = [</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: "正方形",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>outline: [{x:0,y:0},{x:4,y:0},{x:4,y:4},{x:0,y:4}],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>solution: [</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 2, y: 3, r: 3 }, { x: 3, y: 2, r: 2 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 1, y: 0, r: 7 }, { x: 3, y: 0, r: 0 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 1, y: 2, r: 1 }, { x: 0, y: 3, r: 0 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 0, y: 1, r: 1 }</p>
+<p class="p1"><span class="Apple-converted-space">                </span>]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: "天鹅",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>outline: [{x:0,y:2},{x:1,y:1},{x:2,y:2},{x:1,y:3},{x:2,y:4},{x:4,y:2},{x:2,y:0},{x:1,y:1}],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>solution: [</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 1, y: 1, r: 4 }, { x: 2, y: 2, r: 7 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 2, y: 0, r: 1 }, { x: 4, y: 2, r: 2 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 1, y: 3, r: 3 }, { x: 0, y: 2, r: 0 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 2, y: 2, r: 1 }</p>
+<p class="p1"><span class="Apple-converted-space">                </span>]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: "猫",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>outline: [{x:0,y:2},{x:0,y:4},{x:1,y:5},{x:2,y:4},{x:2,y:3},{x:3,y:2},{x:4,y:3},{x:4,y:1},{x:3,y:0},{x:1,y:0}],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>solution: [</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 1, y: 0, r: 5 }, { x: 2, y: 4, r: 6 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 3, y: 0, r: 0 }, { x: 4, y: 3, r: 3 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 1, y: 3, r: 7 }, { x: 0, y: 2, r: 0 },</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{ x: 2, y: 2, r: 0 }</p>
+<p class="p1"><span class="Apple-converted-space">                </span>]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 初始化</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function init() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const container = canvas.parentElement;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const size = Math.min(container.clientWidth, container.clientHeight);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.width = size;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.height = size;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>scale = canvas.width / 8; // 调整scale以适应图案</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>resetPieces();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 重置板块到初始位置</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function resetPieces() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>pieces = pieceDefs.map((def, i) =&gt; ({</p>
+<p class="p1"><span class="Apple-converted-space">                </span>...def,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>id: i,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>x: (i % 4) * 1.8 * scale + scale * 0.5,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>y: Math.floor(i / 4) * 2.5 * scale + scale * 4,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>rotation: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>scaledPath: def.path.map(p =&gt; ({ x: p.x * scale / 2, y: p.y * scale / 2 }))</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}));</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 绘制目标轮廓</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function drawTargetOutline() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const pattern = patterns[currentPatternIndex];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!pattern) return;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.save();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.strokeStyle = '#cbd5e1';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.lineWidth = 3;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.setLineDash([8, 8]);</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const path = pattern.outline;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const offsetX = canvas.width / 2 - 2 * scale;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const offsetY = canvas.height / 2 - 2.5 * scale;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.beginPath();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.moveTo(path[0].x * scale + offsetX, path[0].y * scale + offsetY);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>for (let i = 1; i &lt; path.length; i++) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>ctx.lineTo(path[i].x * scale + offsetX, path[i].y * scale + offsetY);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.closePath();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.stroke();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.restore();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 绘制单个板块</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function drawPiece(piece) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.save();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.translate(piece.x, piece.y);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.rotate(piece.rotation);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.beginPath();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.moveTo(piece.scaledPath[0].x, piece.scaledPath[0].y);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>piece.scaledPath.forEach(p =&gt; ctx.lineTo(p.x, p.y));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.closePath();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.fillStyle = piece.color;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.fill();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.strokeStyle = 'rgba(0,0,0,0.2)';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.lineWidth = 2;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.stroke();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.restore();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 游戏主循环</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function gameLoop() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.clearRect(0, 0, canvas.width, canvas.height);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>drawTargetOutline();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>pieces.forEach(drawPiece);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>requestAnimationFrame(gameLoop);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function getMousePos(evt) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const rect = canvas.getBoundingClientRect();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const clientX = evt.clientX || evt.touches[0].clientX;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const clientY = evt.clientY || evt.touches[0].clientY;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return { x: clientX - rect.left, y: clientY - rect.top };</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function isPointInPiece(p, piece) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.save();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.translate(piece.x, piece.y);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.rotate(piece.rotation);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.beginPath();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.moveTo(piece.scaledPath[0].x, piece.scaledPath[0].y);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>piece.scaledPath.forEach(point =&gt; ctx.lineTo(point.x, point.y));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.closePath();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const result = ctx.isPointInPath(p.x, p.y);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ctx.restore();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return result;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- 事件处理 ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function handleStart(evt) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>evt.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const pos = getMousePos(evt);</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>for (let i = pieces.length - 1; i &gt;= 0; i--) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (isPointInPiece({x: pos.x - pieces[i].x, y: pos.y - pieces[i].y}, pieces[i])) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>selectedPiece = pieces[i];</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>pieces.splice(i, 1);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>pieces.push(selectedPiece);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>offsetX = pos.x - selectedPiece.x;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>offsetY = pos.y - selectedPiece.y;</p>
+<p class="p2"><span class="Apple-converted-space">                    </span></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>// 双击检测</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const currentTime = new Date().getTime();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (currentTime - lastClickTime &lt; 300) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>selectedPiece.rotation += Math.PI / 4; // 旋转45度</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>lastClickTime = currentTime;</p>
+<p class="p2"><span class="Apple-converted-space">                    </span></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>// 绑定移动和结束事件</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>canvas.addEventListener('mousemove', handleMove);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>canvas.addEventListener('touchmove', handleMove, { passive: false });</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>canvas.addEventListener('mouseup', handleEnd);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>canvas.addEventListener('touchend', handleEnd);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>canvas.addEventListener('mouseleave', handleEnd);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function handleMove(evt) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!selectedPiece) return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>evt.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const pos = getMousePos(evt);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>selectedPiece.x = pos.x - offsetX;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>selectedPiece.y = pos.y - offsetY;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function handleEnd() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (selectedPiece) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>snapPiece(selectedPiece);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>checkWin();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>selectedPiece = null;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.removeEventListener('mousemove', handleMove);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.removeEventListener('touchmove', handleMove);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.removeEventListener('mouseup', handleEnd);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.removeEventListener('touchend', handleEnd);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>canvas.removeEventListener('mouseleave', handleEnd);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 吸附功能</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function snapPiece(piece) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const solution = patterns[currentPatternIndex].solution[piece.id];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const targetX = canvas.width / 2 - 2 * scale + solution.x * scale;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const targetY = canvas.height / 2 - 2.5 * scale + solution.y * scale;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const targetRot = solution.r * Math.PI / 4;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const dist = Math.hypot(piece.x - targetX, piece.y - targetY);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>// 检查位置和旋转是否接近</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (dist &lt; SNAP_DISTANCE &amp;&amp; Math.abs(piece.rotation - targetRot) &lt; Math.PI / 8) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>piece.x = targetX;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>piece.y = targetY;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>piece.rotation = targetRot;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 检查胜利条件</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function checkWin() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const solution = patterns[currentPatternIndex].solution;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const isWin = pieces.every(piece =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const sol = solution[piece.id];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const targetX = canvas.width / 2 - 2 * scale + sol.x * scale;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const targetY = canvas.height / 2 - 2.5 * scale + sol.y * scale;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const targetRot = sol.r * Math.PI / 4;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>return Math.hypot(piece.x - targetX, piece.y - targetY) &lt; 1 &amp;&amp;</p>
+<p class="p1"><span class="Apple-converted-space">                       </span>Math.abs(piece.rotation - targetRot) &lt; 0.1;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (isWin) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showWinModal();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 显示胜利弹窗</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function showWinModal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>winPatternName.textContent = patterns[currentPatternIndex].name;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>winModal.classList.remove('opacity-0', 'pointer-events-none');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>winModal.querySelector('div').classList.remove('scale-95');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 隐藏胜利弹窗</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function hideWinModal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>winModal.classList.add('opacity-0', 'pointer-events-none');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>winModal.querySelector('div').classList.add('scale-95');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 设置图案选择按钮</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function setupPatternSelector() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>patternSelector.innerHTML = '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>patterns.forEach((p, index) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const button = document.createElement('button');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>button.textContent = p.name;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>button.className = 'pattern-btn px-4 py-2 rounded-lg font-semibold transition bg-slate-200 text-slate-700 hover:bg-slate-300';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (index === currentPatternIndex) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>button.classList.add('active');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>button.onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>currentPatternIndex = index;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setupPatternSelector(); // 更新按钮样式</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>resetPieces();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>};</p>
+<p class="p1"><span class="Apple-converted-space">                </span>patternSelector.appendChild(button);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- 监听器 ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>canvas.addEventListener('mousedown', handleStart);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>canvas.addEventListener('touchstart', handleStart, { passive: false });</p>
+<p class="p1"><span class="Apple-converted-space">        </span>resetButton.addEventListener('click', resetPieces);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>nextPatternButton.addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">             </span>currentPatternIndex = (currentPatternIndex + 1) % patterns.length;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>setupPatternSelector();</p>
+<p class="p1"><span class="Apple-converted-space">             </span>resetPieces();</p>
+<p class="p1"><span class="Apple-converted-space">             </span>hideWinModal();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>window.addEventListener('resize', init);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// 初始加载</p>
+<p class="p1"><span class="Apple-converted-space">        </span>setupPatternSelector();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>init();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>gameLoop();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
