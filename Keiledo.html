@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>p5.js Kaleidoscope with Gemini API</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #111;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+        }
+        canvas {
+            display: block;
+            border: 1px solid #444;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border: 1px solid #333;
+        }
+        label {
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 150px;
+        }
+        .instructions {
+             position: absolute;
+             bottom: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             color: #888;
+             font-size: 14px;
+             text-align: center;
+        }
+        #prompt-container {
+            display: flex;
+            gap: 10px;
+        }
+        #prompt {
+            background-color: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            width: 250px;
+        }
+        #generateBtn {
+            background-color: #00aaff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #generateBtn:hover {
+            background-color: #0088cc;
+        }
+        #generateBtn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .loader {
+            display: none;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label for="symmetrySlider">Symmetry:</label>
+        <input type="range" id="symmetrySlider" min="2" max="20" value="8" step="1">
+        <span id="symmetryValue">8</span>
+        <div id="prompt-container">
+            <input type="text" id="prompt" placeholder="e.g., 'cosmic explosion'">
+            <button id="generateBtn">Generate ✨</button>
+        </div>
+        <div class="loader" id="loader">Generating...</div>
+    </div>
+
+    <main id="main"></main>
+
+    <div class="instructions">
+        Move mouse to draw, or generate a pattern from a prompt. Press any key to clear.
+    </div>
+
+    <script>
+        // --- Gemini API Integration ---
+        const API_KEY = ""; // This will be handled by the environment
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        
+        // --- Global variables for pattern generation ---
+        let colors = [];
+        let currentSymmetry = 8;
+        let autoDraw = false;
+        let autoDrawFrames = 0;
+
+        // --- p5.js sketch for the kaleidoscope ---
+        function setup() {
+            let canvas = createCanvas(windowWidth * 0.9, windowHeight * 0.8);
+            canvas.parent('main');
+            background(0);
+            colorMode(HSB, 360, 100, 100, 100);
+            angleMode(DEGREES);
+        }
+
+        function draw() {
+            const symmetrySlider = document.getElementById('symmetrySlider');
+            if (!autoDraw) {
+                currentSymmetry = symmetrySlider.value;
+            } else {
+                symmetrySlider.value = currentSymmetry;
+            }
+            document.getElementById('symmetryValue').innerText = Math.round(currentSymmetry);
+
+            translate(width / 2, height / 2);
+
+            if (mouseIsPressed && !autoDraw) {
+                drawMousePattern();
+            } else if (autoDraw) {
+                drawAIPattern();
+                autoDrawFrames++;
+                // Stop auto-drawing after a set number of frames to prevent infinite loops
+                if (autoDrawFrames > 300) {
+                    autoDraw = false;
+                }
+            }
+        }
+
+        function drawMousePattern() {
+            const mx = mouseX - width / 2;
+            const my = mouseY - height / 2;
+            const pmx = pmouseX - width / 2;
+            const pmy = pmouseY - height / 2;
+            const hue = (frameCount * 0.5) % 360;
+            drawSymmetricalLines(mx, my, pmx, pmy, hue, 2);
+        }
+
+        function drawAIPattern() {
+            // Use Perlin noise to create smooth, organic-looking paths
+            const noiseFactor = frameCount * 0.01;
+            const x = map(noise(noiseFactor), 0, 1, -width / 2, width / 2);
+            const y = map(noise(noiseFactor + 100), 0, 1, -height / 2, height / 2);
+            const px = map(noise(noiseFactor - 0.01), 0, 1, -width / 2, width / 2);
+            const py = map(noise(noiseFactor + 100 - 0.01), 0, 1, -height / 2, height / 2);
+            
+            // Cycle through the AI-generated color palette
+            const colorIndex = floor(frameCount / 10) % colors.length;
+            const hue = colors[colorIndex];
+            
+            drawSymmetricalLines(x, y, px, py, hue, 3);
+        }
+
+        function drawSymmetricalLines(x, y, px, py, hue, weight) {
+            stroke(hue, 80, 100, 50);
+            strokeWeight(weight);
+            const angle = 360 / currentSymmetry;
+            for (let i = 0; i < currentSymmetry; i++) {
+                rotate(angle);
+                line(x, y, px, py);
+                push();
+                scale(-1, 1);
+                line(x, y, px, py);
+                pop();
+            }
+        }
+
+        function keyPressed() {
+            autoDraw = false; // Stop auto-drawing if a key is pressed
+            background(0);
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth * 0.9, windowHeight * 0.8);
+            background(0);
+        }
+
+        // --- Gemini API Call Logic ---
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const promptText = document.getElementById('prompt').value;
+            if (!promptText) {
+                alert("Please enter a prompt.");
+                return;
+            }
+
+            const loader = document.getElementById('loader');
+            const btn = document.getElementById('generateBtn');
+            loader.style.display = 'inline';
+            btn.disabled = true;
+
+            const systemPrompt = `You are a creative assistant for a kaleidoscope application. Based on the user's prompt, provide parameters for generating a visual pattern. Respond with a JSON object containing 'symmetry' (an integer between 4 and 16) and 'colors' (an array of 3-5 HSB hue values between 0 and 360). For example: {"symmetry": 8, "colors": [180, 210, 240]}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: `Prompt: ${promptText}` }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                }
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+
+                const result = await response.json();
+                const jsonText = result.candidates[0].content.parts[0].text;
+                const params = JSON.parse(jsonText);
+
+                // Start a new pattern with the AI-generated parameters
+                background(0);
+                currentSymmetry = params.symmetry;
+                colors = params.colors;
+                autoDraw = true;
+                autoDrawFrames = 0;
+
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                alert("Sorry, something went wrong while generating the pattern. Please try again.");
+            } finally {
+                loader.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
