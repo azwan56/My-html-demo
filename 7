@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互动七巧板 (升级版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            touch-action: none;
+        }
+        canvas {
+            cursor: grab;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        .pattern-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        /* 胜利提示弹窗样式 */
+        #winModal {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl mx-auto">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">七巧板挑战</h1>
+            <p class="text-slate-600 mb-4">选择一个图案，然后把所有板块拼进去吧！</p>
+            
+            <!-- 图案选择 -->
+            <div id="patternSelector" class="flex justify-center space-x-2 mb-4">
+                <!-- Buttons will be inserted here by JS -->
+            </div>
+
+            <div class="aspect-square w-full max-w-xl mx-auto bg-white rounded-xl relative">
+                 <canvas id="tangramCanvas"></canvas>
+            </div>
+
+            <button id="resetButton" class="mt-6 bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
+                重置当前关卡
+            </button>
+        </div>
+    </div>
+
+    <!-- 胜利提示弹窗 -->
+    <div id="winModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center transform scale-95 transition-transform">
+            <h2 class="text-3xl font-bold text-green-500 mb-4">太棒了！</h2>
+            <p class="text-slate-700 mb-6">你成功拼出了 <span id="winPatternName" class="font-bold"></span> 图案！</p>
+            <button id="nextPatternButton" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition">
+                下一个图案
+            </button>
+        </div>
+    </div>
+
+
+    <script>
+        const canvas = document.getElementById('tangramCanvas');
+        const ctx = canvas.getContext('2d');
+        const resetButton = document.getElementById('resetButton');
+        const patternSelector = document.getElementById('patternSelector');
+        const winModal = document.getElementById('winModal');
+        const winPatternName = document.getElementById('winPatternName');
+        const nextPatternButton = document.getElementById('nextPatternButton');
+
+        let scale;
+        let pieces = [];
+        let selectedPiece = null;
+        let offsetX, offsetY;
+        let lastClickTime = 0;
+        let currentPatternIndex = 0;
+
+        const SNAP_DISTANCE = 15; // 吸附距离
+        
+        // 板块基础定义
+        const pieceDefs = [
+            { color: '#c0392b', path: [{x:0,y:0}, {x:2,y:0}, {x:1,y:1}] }, // 小三角1
+            { color: '#27ae60', path: [{x:0,y:0}, {x:2,y:0}, {x:1,y:1}] }, // 小三角2
+            { color: '#2980b9', path: [{x:0,y:0}, {x:2,y:2}, {x:2,y:0}] }, // 大三角1
+            { color: '#f1c40f', path: [{x:0,y:0}, {x:2,y:2}, {x:0,y:2}] }, // 大三角2
+            { color: '#8e44ad', path: [{x:0,y:1}, {x:1,y:2}, {x:1,y:0}, {x:0,y:1}] }, // 中三角 (调整了原点)
+            { color: '#e67e22', path: [{x:0,y:0}, {x:1,y:0}, {x:1,y:1}, {x:0,y:1}] }, // 正方形
+            { color: '#3498db', path: [{x:0,y:0}, {x:1,y:1}, {x:0,y:1}, {x:-1,y:0}] }  // 平行四边形
+        ];
+
+        // 图案定义
+        const patterns = [
+            {
+                name: "正方形",
+                outline: [{x:0,y:0},{x:4,y:0},{x:4,y:4},{x:0,y:4}],
+                solution: [
+                    { x: 2, y: 3, r: 3 }, { x: 3, y: 2, r: 2 },
+                    { x: 1, y: 0, r: 7 }, { x: 3, y: 0, r: 0 },
+                    { x: 1, y: 2, r: 1 }, { x: 0, y: 3, r: 0 },
+                    { x: 0, y: 1, r: 1 }
+                ]
+            },
+            {
+                name: "天鹅",
+                outline: [{x:0,y:2},{x:1,y:1},{x:2,y:2},{x:1,y:3},{x:2,y:4},{x:4,y:2},{x:2,y:0},{x:1,y:1}],
+                solution: [
+                    { x: 1, y: 1, r: 4 }, { x: 2, y: 2, r: 7 },
+                    { x: 2, y: 0, r: 1 }, { x: 4, y: 2, r: 2 },
+                    { x: 1, y: 3, r: 3 }, { x: 0, y: 2, r: 0 },
+                    { x: 2, y: 2, r: 1 }
+                ]
+            },
+            {
+                name: "猫",
+                outline: [{x:0,y:2},{x:0,y:4},{x:1,y:5},{x:2,y:4},{x:2,y:3},{x:3,y:2},{x:4,y:3},{x:4,y:1},{x:3,y:0},{x:1,y:0}],
+                solution: [
+                    { x: 1, y: 0, r: 5 }, { x: 2, y: 4, r: 6 },
+                    { x: 3, y: 0, r: 0 }, { x: 4, y: 3, r: 3 },
+                    { x: 1, y: 3, r: 7 }, { x: 0, y: 2, r: 0 },
+                    { x: 2, y: 2, r: 0 }
+                ]
+            }
+        ];
+
+        // 初始化
+        function init() {
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            canvas.width = size;
+            canvas.height = size;
+            scale = canvas.width / 8; // 调整scale以适应图案
+
+            resetPieces();
+        }
+
+        // 重置板块到初始位置
+        function resetPieces() {
+            pieces = pieceDefs.map((def, i) => ({
+                ...def,
+                id: i,
+                x: (i % 4) * 1.8 * scale + scale * 0.5,
+                y: Math.floor(i / 4) * 2.5 * scale + scale * 4,
+                rotation: 0,
+                scaledPath: def.path.map(p => ({ x: p.x * scale / 2, y: p.y * scale / 2 }))
+            }));
+        }
+
+        // 绘制目标轮廓
+        function drawTargetOutline() {
+            const pattern = patterns[currentPatternIndex];
+            if (!pattern) return;
+
+            ctx.save();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 8]);
+            
+            const path = pattern.outline;
+            const offsetX = canvas.width / 2 - 2 * scale;
+            const offsetY = canvas.height / 2 - 2.5 * scale;
+
+            ctx.beginPath();
+            ctx.moveTo(path[0].x * scale + offsetX, path[0].y * scale + offsetY);
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo(path[i].x * scale + offsetX, path[i].y * scale + offsetY);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+        }
+        
+        // 绘制单个板块
+        function drawPiece(piece) {
+            ctx.save();
+            ctx.translate(piece.x, piece.y);
+            ctx.rotate(piece.rotation);
+            ctx.beginPath();
+            ctx.moveTo(piece.scaledPath[0].x, piece.scaledPath[0].y);
+            piece.scaledPath.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+            ctx.fillStyle = piece.color;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 游戏主循环
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawTargetOutline();
+            pieces.forEach(drawPiece);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = evt.clientX || evt.touches[0].clientX;
+            const clientY = evt.clientY || evt.touches[0].clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function isPointInPiece(p, piece) {
+            ctx.save();
+            ctx.translate(piece.x, piece.y);
+            ctx.rotate(piece.rotation);
+            ctx.beginPath();
+            ctx.moveTo(piece.scaledPath[0].x, piece.scaledPath[0].y);
+            piece.scaledPath.forEach(point => ctx.lineTo(point.x, point.y));
+            ctx.closePath();
+            const result = ctx.isPointInPath(p.x, p.y);
+            ctx.restore();
+            return result;
+        }
+
+        // --- 事件处理 ---
+        function handleStart(evt) {
+            evt.preventDefault();
+            const pos = getMousePos(evt);
+            
+            for (let i = pieces.length - 1; i >= 0; i--) {
+                if (isPointInPiece({x: pos.x - pieces[i].x, y: pos.y - pieces[i].y}, pieces[i])) {
+                    selectedPiece = pieces[i];
+                    pieces.splice(i, 1);
+                    pieces.push(selectedPiece);
+
+                    offsetX = pos.x - selectedPiece.x;
+                    offsetY = pos.y - selectedPiece.y;
+                    
+                    // 双击检测
+                    const currentTime = new Date().getTime();
+                    if (currentTime - lastClickTime < 300) {
+                        selectedPiece.rotation += Math.PI / 4; // 旋转45度
+                    }
+                    lastClickTime = currentTime;
+                    
+                    // 绑定移动和结束事件
+                    canvas.addEventListener('mousemove', handleMove);
+                    canvas.addEventListener('touchmove', handleMove, { passive: false });
+                    canvas.addEventListener('mouseup', handleEnd);
+                    canvas.addEventListener('touchend', handleEnd);
+                    canvas.addEventListener('mouseleave', handleEnd);
+                    return;
+                }
+            }
+        }
+
+        function handleMove(evt) {
+            if (!selectedPiece) return;
+            evt.preventDefault();
+            const pos = getMousePos(evt);
+            selectedPiece.x = pos.x - offsetX;
+            selectedPiece.y = pos.y - offsetY;
+        }
+
+        function handleEnd() {
+            if (selectedPiece) {
+                snapPiece(selectedPiece);
+                checkWin();
+            }
+            selectedPiece = null;
+            canvas.removeEventListener('mousemove', handleMove);
+            canvas.removeEventListener('touchmove', handleMove);
+            canvas.removeEventListener('mouseup', handleEnd);
+            canvas.removeEventListener('touchend', handleEnd);
+            canvas.removeEventListener('mouseleave', handleEnd);
+        }
+
+        // 吸附功能
+        function snapPiece(piece) {
+            const solution = patterns[currentPatternIndex].solution[piece.id];
+            const targetX = canvas.width / 2 - 2 * scale + solution.x * scale;
+            const targetY = canvas.height / 2 - 2.5 * scale + solution.y * scale;
+            const targetRot = solution.r * Math.PI / 4;
+
+            const dist = Math.hypot(piece.x - targetX, piece.y - targetY);
+
+            // 检查位置和旋转是否接近
+            if (dist < SNAP_DISTANCE && Math.abs(piece.rotation - targetRot) < Math.PI / 8) {
+                piece.x = targetX;
+                piece.y = targetY;
+                piece.rotation = targetRot;
+            }
+        }
+
+        // 检查胜利条件
+        function checkWin() {
+            const solution = patterns[currentPatternIndex].solution;
+            const isWin = pieces.every(piece => {
+                const sol = solution[piece.id];
+                const targetX = canvas.width / 2 - 2 * scale + sol.x * scale;
+                const targetY = canvas.height / 2 - 2.5 * scale + sol.y * scale;
+                const targetRot = sol.r * Math.PI / 4;
+                
+                return Math.hypot(piece.x - targetX, piece.y - targetY) < 1 &&
+                       Math.abs(piece.rotation - targetRot) < 0.1;
+            });
+
+            if (isWin) {
+                showWinModal();
+            }
+        }
+
+        // 显示胜利弹窗
+        function showWinModal() {
+            winPatternName.textContent = patterns[currentPatternIndex].name;
+            winModal.classList.remove('opacity-0', 'pointer-events-none');
+            winModal.querySelector('div').classList.remove('scale-95');
+        }
+        
+        // 隐藏胜利弹窗
+        function hideWinModal() {
+            winModal.classList.add('opacity-0', 'pointer-events-none');
+            winModal.querySelector('div').classList.add('scale-95');
+        }
+
+        // 设置图案选择按钮
+        function setupPatternSelector() {
+            patternSelector.innerHTML = '';
+            patterns.forEach((p, index) => {
+                const button = document.createElement('button');
+                button.textContent = p.name;
+                button.className = 'pattern-btn px-4 py-2 rounded-lg font-semibold transition bg-slate-200 text-slate-700 hover:bg-slate-300';
+                if (index === currentPatternIndex) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    currentPatternIndex = index;
+                    setupPatternSelector(); // 更新按钮样式
+                    resetPieces();
+                };
+                patternSelector.appendChild(button);
+            });
+        }
+
+        // --- 监听器 ---
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('touchstart', handleStart, { passive: false });
+        resetButton.addEventListener('click', resetPieces);
+        nextPatternButton.addEventListener('click', () => {
+             currentPatternIndex = (currentPatternIndex + 1) % patterns.length;
+             setupPatternSelector();
+             resetPieces();
+             hideWinModal();
+        });
+        window.addEventListener('resize', init);
+
+        // 初始加载
+        setupPatternSelector();
+        init();
+        gameLoop();
+    </script>
+</body>
+</html>
