@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多语言脏话生成器</title>
+    <!-- 引入Tailwind CSS以进行快速样式设计 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Google Fonts以获得更美观的字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 使用Inter和Noto Sans SC字体，并为中文提供回退 */
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+        /* 为显示区域添加一个最小高度，以防止在加载时布局移动 */
+        #word-display-container {
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl text-center">
+        <!-- 标题 -->
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-red-500">多语言“文化”学习</h1>
+        <p class="text-gray-400 mb-8">点击按钮，随机探索来自世界各地的“问候”及其含义。</p>
+
+        <!-- 用于显示脏话和翻译的容器 -->
+        <div id="word-display-container" class="bg-gray-800 p-8 rounded-lg shadow-lg mb-8 border border-gray-700 flex flex-col justify-center">
+            <p id="language-display" class="text-lg text-gray-500 mb-2"></p>
+            <p id="word-display" class="text-5xl md:text-6xl font-bold text-yellow-400 break-words mb-4"></p>
+            <p id="translation-display" class="text-2xl md:text-3xl text-cyan-400"></p>
+        </div>
+
+        <!-- 生成按钮 -->
+        <button id="generate-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500 focus:ring-opacity-50">
+            生成下一个
+        </button>
+
+        <!-- 免责声明 -->
+        <p class="text-xs text-gray-600 mt-8">
+            免责声明：此内容仅供娱乐和语言学习目的。开发者对因使用此工具而产生的任何冒犯或后果概不负责。
+        </p>
+    </div>
+
+    <script>
+        // 定义一个包含多种语言脏话及其翻译的数组
+        const swearWords = [
+            // 英语
+            { language: '英语 (English)', word: 'Fuck', translation: '操 / 干' },
+            { language: '英语 (English)', word: 'Shit', translation: '屎 / 狗屎' },
+            { language: '英语 (English)', word: 'Bitch', translation: '婊子' },
+            { language: '英语 (English)', word: 'Asshole', translation: '混蛋' },
+            // 西班牙语
+            { language: '西班牙语 (Español)', word: 'Puta', translation: '婊子' },
+            { language: '西班牙语 (Español)', word: 'Mierda', translation: '屎' },
+            { language: '西班牙语 (Español)', word: 'Joder', translation: '操' },
+            { language: '西班牙语 (Español)', word: 'Cabrón', translation: '混蛋 / 戴绿帽的人' },
+            // 俄语
+            { language: '俄语 (Русский)', word: 'Блядь', translation: '婊子 / 操' },
+            { language: '俄语 (Русский)', word: 'Сука', translation: '母狗 (骂人话)' },
+            { language: '俄语 (Русский)', word: 'Хуй', translation: '鸡巴' },
+            { language: '俄语 (Русский)', word: 'Пиздец', translation: '完蛋了 / 操' },
+            // 日语
+            { language: '日语 (日本語)', word: '馬鹿 (Baka)', translation: '笨蛋 / 傻瓜' },
+            { language: '日语 (日本語)', word: 'クソ (Kuso)', translation: '屎 / 可恶' },
+            { language: '日语 (日本語)', word: '死ね (Shine)', translation: '去死' },
+            { language: '日语 (日本語)', word: '阿呆 (Aho)', translation: '白痴' },
+            // 德语
+            { language: '德语 (Deutsch)', word: 'Scheiße', translation: '屎 / 该死' },
+            { language: '德语 (Deutsch)', word: 'Fick dich', translation: '操你' },
+            { language: '德语 (Deutsch)', word: 'Arschloch', translation: '屁眼 / 混蛋' },
+            { language: '德语 (Deutsch)', word: 'Hurensohn', translation: '狗娘养的' },
+            // 法语
+            { language: '法语 (Français)', word: 'Merde', translation: '屎 / 该死' },
+            { language: '法语 (Français)', word: 'Putain', translation: '婊子 / 操' },
+            { language: '法语 (Français)', word: 'Con', translation: '傻逼' },
+            { language: '法语 (Français)', word: 'Va te faire foutre', translation: '滚去被操' },
+            // 意大利语
+            { language: '意大利语 (Italiano)', word: 'Cazzo', translation: '鸡巴' },
+            { language: '意大利语 (Italiano)', word: 'Merda', translation: '屎' },
+            { language: '意大利语 (Italiano)', word: 'Vaffanculo', translation: '滚开 / 操' },
+            { language: '意大利语 (Italiano)', word: 'Stronzo', translation: '混蛋' },
+            // 韩语
+            { language: '韩语 (한국어)', word: '씨발 (Ssibal)', translation: '操' },
+            { language: '韩语 (한국어)', word: '병신 (Byeongsin)', translation: '残废 / 傻逼' },
+            { language: '韩语 (한국어)', word: '개새끼 (Gaesaekki)', translation: '狗崽子' },
+            { language: '韩语 (한국어)', word: '좆 (Jot)', translation: '鸡巴' },
+            // 葡萄牙语
+            { language: '葡萄牙语 (Português)', word: 'Porra', translation: '精液 / 操' },
+            { language: '葡萄牙语 (Português)', word: 'Merda', translation: '屎' },
+            { language: '葡萄牙语 (Português)', word: 'Foda-se', translation: '操' },
+            { language: '葡萄牙语 (Português)', word: 'Filho da puta', translation: '狗娘养的' },
+            // 阿拉伯语
+            { language: '阿拉伯语 (العربية)', word: 'كس أمك (Kus ummak)', translation: '操你妈' },
+            { language: '阿拉伯语 (العربية)', word: 'خرا (Khara)', translation: '屎' },
+            { language: '阿拉伯语 (العربية)', word: 'كلب (Kalb)', translation: '狗' },
+            { language: '阿拉伯语 (العربية)', word: 'إبن الشرموطة', translation: '婊子养的' }
+        ];
+
+        // 获取HTML元素
+        const wordDisplay = document.getElementById('word-display');
+        const languageDisplay = document.getElementById('language-display');
+        const translationDisplay = document.getElementById('translation-display');
+        const generateBtn = document.getElementById('generate-btn');
+
+        // 生成并显示一个随机脏话的函数
+        function generateSwearWord() {
+            // 从数组中随机选择一个对象
+            const randomIndex = Math.floor(Math.random() * swearWords.length);
+            const selectedWord = swearWords[randomIndex];
+
+            // 更新HTML元素以显示语言、单词和翻译
+            languageDisplay.textContent = `语言: ${selectedWord.language}`;
+            wordDisplay.textContent = selectedWord.word;
+            translationDisplay.textContent = `中文翻译: ${selectedWord.translation}`;
+        }
+
+        // 为按钮添加点击事件监听器
+        generateBtn.addEventListener('click', generateSwearWord);
+
+        // 在页面加载时立即生成第一个单词
+        document.addEventListener('DOMContentLoaded', generateSwearWord);
+    </script>
+
+</body>
+</html>
