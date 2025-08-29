@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互动七巧板 (重构版)</title>
+    <title>互动七巧板 (新图案版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,7 +86,6 @@
         const SNAP_DISTANCE = 25;
         
         // --- 几何精确的板块定义 ---
-        // 以小三角形的直角边为基本单位 "1"
         const pieceDefs = [
             { id: 0, color: '#c0392b', path: [{x:0,y:0}, {x:1,y:0}, {x:0.5,y:0.5}] }, // 小三角1
             { id: 1, color: '#27ae60', path: [{x:0,y:0}, {x:1,y:0}, {x:0.5,y:0.5}] }, // 小三角2
@@ -97,46 +96,45 @@
             { id: 6, color: '#3498db', path: [{x:0,y:0}, {x:1,y:0}, {x:1.5,y:0.5}, {x:0.5,y:0.5}] }  // 平行四边形
         ];
 
-        // --- 经过重构的、与板块精确匹配的图案和答案 ---
-        // (x, y) 是板块的中心点坐标, r 是旋转次数 * 45度
+        // --- 全新的图案设计 ---
         const patterns = [
             {
-                name: "正方形",
-                outline: [{x:0,y:1}, {x:1,y:0}, {x:3,y:0}, {x:3,y:2}, {x:4,y:3}, {x:2,y:5}, {x:1,y:4}, {x:0,y:3}],
+                name: "小船",
+                outline: [{x:0,y:2}, {x:2,y:0}, {x:4,y:2}, {x:3,y:3}, {x:1,y:3}],
                 solution: [
-                    { id: 0, x: 2.5, y: 0.5, r: 1 },
-                    { id: 1, x: 0.5, y: 2.5, r: 5 },
-                    { id: 2, x: 0, y: 2, r: 3 },
-                    { id: 3, x: 4, y: 2, r: 7 },
-                    { id: 4, x: 2, y: 4, r: 4 },
-                    { id: 5, x: 1.5, y: 0.5, r: 2 },
-                    { id: 6, x: 2.5, y: 2.5, r: 7 }
+                    { id: 0, x: 0.5, y: 2.5, r: 5 },
+                    { id: 1, x: 3.5, y: 2.5, r: 7 },
+                    { id: 2, x: 2, y: 0, r: 0 },
+                    { id: 3, x: 2, y: 2, r: 4 },
+                    { id: 4, x: 2, y: 2, r: 0 },
+                    { id: 5, x: 1.5, y: 2.5, r: 0 },
+                    { id: 6, x: 2.5, y: 2.5, r: 1 }
                 ]
             },
             {
-                name: "天鹅",
-                outline: [{x:0,y:2}, {x:1,y:1}, {x:3,y:1}, {x:4,y:2}, {x:3,y:3}, {x:3,y:4}, {x:2,y:3}, {x:1,y:4}, {x:1,y:3}],
+                name: "飞鸟",
+                outline: [{x:0,y:2}, {x:1,y:1}, {x:2,y:2}, {x:3,y:1}, {x:4,y:2}, {x:2,y:4}, {x:1,y:3}],
                 solution: [
-                    { id: 0, x: 1.5, y: 1.5, r: 5 },
-                    { id: 1, x: 2.5, y: 3.5, r: 1 },
-                    { id: 2, x: 0, y: 2, r: 1 },
-                    { id: 3, x: 4, y: 2, r: 5 },
-                    { id: 4, x: 1.5, y: 3.5, r: 4 },
-                    { id: 5, x: 1.5, y: 1.5, r: 0 },
+                    { id: 0, x: 0.5, y: 2.5, r: 5 },
+                    { id: 1, x: 3.5, y: 1.5, r: 7 },
+                    { id: 2, x: 2, y: 0, r: 1 },
+                    { id: 3, x: 2, y: 4, r: 5 },
+                    { id: 4, x: 1.5, y: 1.5, r: 0 },
+                    { id: 5, x: 1.5, y: 2.5, r: 2 },
                     { id: 6, x: 2.5, y: 1.5, r: 1 }
                 ]
             },
             {
-                name: "猫",
-                outline: [{x:0,y:1}, {x:1,y:0}, {x:2,y:1}, {x:2,y:2}, {x:3,y:3}, {x:3,y:4}, {x:2,y:5}, {x:1,y:4}, {x:0,y:5}, {x:-1,y:4}, {x:0,y:3}],
+                name: "蜡烛",
+                outline: [{x:1,y:4}, {x:2,y:5}, {x:3,y:4}, {x:3,y:2}, {x:4,y:1}, {x:2,y:1}, {x:2,y:0}, {x:0,y:2}, {x:1,y:2}],
                 solution: [
-                    { id: 0, x: 1.5, y: 4.5, r: 4 },
-                    { id: 1, x: -0.5, y: 3.5, r: 7 },
-                    { id: 2, x: 0, y: 1, r: 0 },
-                    { id: 3, x: 3, y: 4, r: 5 },
-                    { id: 4, x: 2.5, y: 1.5, r: 2 },
-                    { id: 5, x: 0.5, y: 3.5, r: 0 },
-                    { id: 6, x: 2.5, y: 2.5, r: 1 }
+                    { id: 0, x: 2.5, y: 4.5, r: 5 },
+                    { id: 1, x: 1.5, y: 4.5, r: 4 },
+                    { id: 2, x: 0, y: 2, r: 1 },
+                    { id: 3, x: 4, y: 1, r: 6 },
+                    { id: 4, x: 2, y: 0, r: 0 },
+                    { id: 5, x: 2.5, y: 1.5, r: 2 },
+                    { id: 6, x: 1.5, y: 2.5, r: 7 }
                 ]
             }
         ];
@@ -311,7 +309,7 @@
                 const sol = solution.find(s => s.id === piece.id);
                 if (!sol) return false;
                 const target = getTargetPosition(sol);
-                const posCheck = Math.hypot(piece.x - target.x, piece.y - target.y) < 5; // Loosen tolerance slightly
+                const posCheck = Math.hypot(piece.x - target.x, piece.y - target.y) < 5;
                 const rotDiff = Math.abs((piece.rotation % (2*Math.PI)) - (target.rotation % (2*Math.PI)));
                 const rotCheck = Math.min(rotDiff, 2*Math.PI - rotDiff) < 0.1;
                 return posCheck && rotCheck;
