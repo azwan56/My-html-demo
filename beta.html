@@ -1,0 +1,82 @@
+
+
+
+  <!DOCTYPE html>  
+  <html lang="zh-CN">  
+  <head>  
+      <meta charset="UTF-8">  
+      <title>数字转字母转换器</title>  
+      <style>  
+          body {  
+              font-family: Arial, sans-serif;  
+              display: flex;  
+              justify-content: center;  
+              align-items: center;  
+              min-height: 100vh;  
+              margin: 0;  
+              background-color: #f0f2f5;  
+          }  
+     
+          .container {  
+              background-color: white;  
+              padding: 2rem;  
+              border-radius: 10px;  
+              box-shadow: 0 2px 10px rgba(0,0,0,0.1);  
+              text-align: center;  
+          }  
+     
+          button {  
+              background-color: #4CAF50;  
+              color: white;  
+              padding: 12px 24px;  
+              border: none;  
+              border-radius: 5px;  
+              cursor: pointer;  
+              font-size: 16px;  
+              margin: 1rem 0;  
+          }  
+     
+          .result {  
+              margin: 1rem 0;  
+              font-size: 18px;  
+          }  
+     
+          .letter {  
+              font-size: 24px;  
+              font-weight: bold;  
+              color: #2196F3;  
+          }  
+      </style>  
+  </head>  
+  <body>  
+      <div class="container">  
+          <h1>数字转字母转换器</h1>  
+          <button onclick="generateAndConvert()">生成并转换</button>  
+          <div class="result">  
+              <p>随机三位数：<span id="number">---</span></p >  
+              <p>各位相加结果：<span id="sum">---</span></p >  
+              <p>对应字母：<span class="letter" id="letter">---</span></p >  
+          </div>  
+      </div>  
+     
+      <script>  
+          function generateAndConvert() {  
+              // 生成100-999的随机三位数  
+              const randomNumber = Math.floor(Math.random() * 900) + 100;  
+                
+              // 分解数字各位并相加  
+              const digits = String(randomNumber).split('');  
+              const sum = digits.reduce((acc, digit) => acc + Number(digit), 0);  
+                
+              // 转换为字母（1=a, 2=b, ..., 26=z）  
+              const letterCode = (sum - 1) % 26; // 转换为0-25  
+              const letter = String.fromCharCode(97 + letterCode);  
+                
+              // 更新页面显示  
+              document.getElementById('number').textContent = randomNumber;  
+              document.getElementById('sum').textContent = sum;  
+              document.getElementById('letter').textContent = letter;  
+          }  
+      </script>  
+  </body>  
+  </html>  
