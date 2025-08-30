@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>生字学习卡片</title>
+    <style>
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 200px;
+            height: 280px;
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-front {
+            background: #fff3e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-back {
+            background: #e3f2fd;
+            transform: rotateY(180deg);
+        }
+
+        .hanzi {
+            font-size: 60px;
+            margin: 20px 0;
+        }
+
+        .stroke-demo {
+            width: 100%;
+            height: 150px;
+            background: white;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 剪 -->
+        <div class="card" onclick="this.classList.toggle('flipped')">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="hanzi">剪</div>
+                    <div>拼音：jiǎn</div>
+                    <div>部首：刀</div>
+                </div>
+                <div class="card-back">
+                    <h3>笔顺演示</h3>
+                    <div class="stroke-demo" id="stroke-jian">
+                        <!-- 此处需要添加笔顺动画 -->
+                        < img src="jian_strokes.gif" alt="剪笔顺" style="width:100%">
+                    </div>
+                    <p>释义：用剪刀等使东西断开</p >
+                </div>
+            </div>
+        </div>
+
+        <!-- 其他汉字卡片结构相同，此处省略翅、呢、衔的代码 -->
+    </div>
+
+    <script>
+        // 可添加笔顺动画控制逻辑
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                // 可以在此处添加音频播放等交互功能
+            });
+        });
+    </script>
+</body>
+</html>
