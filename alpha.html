@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机数转字母</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .output-card {
+            transition: all 0.3s ease-in-out;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        .output-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md mx-auto p-6 md:p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg text-center">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-2">随机数转字母</h1>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">点击按钮生成一个随机三位数并查看转换结果。</p>
+        
+        <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+            开始生成
+        </button>
+
+        <div id="result" class="mt-8 space-y-4">
+            <!-- 结果将在这里动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const resultDiv = document.getElementById('result');
+
+        generateBtn.addEventListener('click', () => {
+            // 清空之前的结果
+            resultDiv.innerHTML = '';
+            resultDiv.classList.remove('visible');
+
+            // 1. 生成一个100到999之间的随机数
+            const randomNumber = Math.floor(Math.random() * 900) + 100;
+
+            // 2. 将数字转换为字符串以便获取每一位
+            const numStr = randomNumber.toString();
+            const digits = numStr.split('').map(Number); // [d1, d2, d3]
+            
+            // 3. 计算数字之和
+            const sum = digits.reduce((acc, curr) => acc + curr, 0);
+
+            // 4. 将和转换为字母 (A=1, B=2, ..., Z=26)
+            // 数字之和的范围是 1 (100) 到 27 (999)
+            // 我们使用取模运算来处理27，让它循环回'A'
+            const letterIndex = (sum - 1) % 26; // 0-25
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const resultLetter = alphabet[letterIndex];
+
+            // 延迟一小段时间以实现动画效果
+            setTimeout(() => {
+                // 创建并显示结果卡片
+                resultDiv.innerHTML = `
+                    <div class="output-card bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">随机三位数</p>
+                        <p class="text-4xl font-bold text-blue-600 dark:text-blue-400">${randomNumber}</p>
+                    </div>
+                    <div class="output-card bg-gray-50 dark:bg-gray-700 p-4 rounded-lg" style="transition-delay: 100ms;">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">各位相加</p>
+                        <p class="text-2xl font-semibold text-gray-800 dark:text-white">${digits.join(' + ')} = <span class="text-green-600 dark:text-green-400">${sum}</span></p>
+                    </div>
+                    <div class="output-card bg-gray-50 dark:bg-gray-700 p-4 rounded-lg" style="transition-delay: 200ms;">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">对应字母 (A=1, ...)</p>
+                        <p class="text-6xl font-extrabold text-indigo-600 dark:text-indigo-400">${resultLetter}</p>
+                    </div>
+                `;
+                
+                // 逐个显示卡片
+                const cards = resultDiv.querySelectorAll('.output-card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('visible');
+                    }, index * 100);
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
