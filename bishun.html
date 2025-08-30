@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字卡片 (Flashcards)</title>
+    <title>生字卡片 (Flashcards) - 分页版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,142 +11,172 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei";
-            background-color: #fdfaf4; /* 柔和的米色背景 */
+            background-color: #fdfaf4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
         }
         .hanzi-char {
-            font-family: 'Noto Serif SC', serif; /* 使用衬线字体展示汉字，更美观 */
+            font-family: 'Noto Serif SC', serif;
             line-height: 1;
         }
         .card {
             background-color: white;
-            border-radius: 1.5rem; /* 更圆润的边角 */
-            padding: 2rem;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border: 1px solid #f3eade;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 600px;
         }
         .stroke-order-img {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
             border-radius: 0.75rem;
             width: 100%;
-            max-width: 200px; /* 限制笔顺图的最大宽度 */
-            margin-left: auto;
-            margin-right: auto;
+            max-width: 200px;
+            margin: 0 auto;
         }
         h2 {
-            color: #c08422; /* 标题使用柔和的棕色 */
+            color: #c08422;
+        }
+        .nav-button {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .nav-button:disabled {
+            background-color: #d1d5db; /* gray-300 */
+            cursor: not-allowed;
+            transform: none;
+        }
+        .nav-button:hover:not(:disabled) {
+            transform: translateY(-2px);
         }
     </style>
 </head>
-<body class="p-4 sm:p-8">
+<body>
 
-    <div class="max-w-7xl mx-auto">
-        <header class="text-center mb-10">
+    <main class="w-full max-w-2xl">
+        <header class="text-center mb-6">
             <h1 class="text-4xl font-bold text-gray-800">生字学习卡片</h1>
-            <p class="text-gray-500 mt-2">简洁版</p>
+            <p id="page-indicator" class="text-gray-500 mt-2"></p>
         </header>
 
-        <!-- 卡片网格布局 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-            <!-- 卡片 1: 剪 -->
-            <div class="card">
-                <h1 class="hanzi-char text-8xl sm:text-9xl font-bold text-gray-800 mb-6">剪</h1>
-                <div class="space-y-4">
-                    <p><strong class="text-gray-600">拼音 (Pinyin):</strong> <span class="text-lg">jiǎn</span></p>
-                    <p><strong class="text-gray-600">部首 (Radical):</strong> 刀</p>
-                    <p><strong class="text-gray-600">笔画 (Strokes):</strong> 11</p>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">常用词语 (Words)</h2>
-                        <p class="text-gray-700">剪刀 (jiǎn dāo) / 剪纸 (jiǎn zhǐ) / 剪彩 (jiǎn cǎi)</p>
-                    </div>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">例句 (Sentence)</h2>
-                        <p class="text-gray-700">我用<span class="font-semibold text-blue-600">剪</span>刀把这张红纸<span class="font-semibold text-blue-600">剪</span>成了一朵花。</p>
-                    </div>
-                    <div class="border-t pt-4 mt-auto text-center">
-                        <h2 class="font-bold mb-2">笔顺演示 (Stroke Order)</h2>
-                        <img src="https://bishun.net/assets/bishun/donghua/bishundonghua-21098.gif" alt="剪 笔顺" class="stroke-order-img">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 卡片 2: 翅 -->
-            <div class="card">
-                <h1 class="hanzi-char text-8xl sm:text-9xl font-bold text-gray-800 mb-6">翅</h1>
-                <div class="space-y-4">
-                    <p><strong class="text-gray-600">拼音 (Pinyin):</strong> <span class="text-lg">chì</span></p>
-                    <p><strong class="text-gray-600">部首 (Radical):</strong> 羽</p>
-                    <p><strong class="text-gray-600">笔画 (Strokes):</strong> 10</p>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">常用词语 (Words)</h2>
-                        <p class="text-gray-700">翅膀 (chì bǎng) / 鱼翅 (yú chì) / 展翅 (zhǎn chì)</p>
-                    </div>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">例句 (Sentence)</h2>
-                        <p class="text-gray-700">雄鹰展开<span class="font-semibold text-blue-600">翅</span>膀，在天空中自由地飞翔。</p>
-                    </div>
-                    <div class="border-t pt-4 mt-auto text-center">
-                        <h2 class="font-bold mb-2">笔顺演示 (Stroke Order)</h2>
-                        <img src="https://bishun.net/assets/bishun/donghua/bishundonghua-32709.gif" alt="翅 笔顺" class="stroke-order-img">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 卡片 3: 呢 -->
-            <div class="card">
-                <h1 class="hanzi-char text-8xl sm:text-9xl font-bold text-gray-800 mb-6">呢</h1>
-                <div class="space-y-4">
-                    <p><strong class="text-gray-600">拼音 (Pinyin):</strong> <span class="text-lg">ne</span></p>
-                    <p><strong class="text-gray-600">部首 (Radical):</strong> 口</p>
-                    <p><strong class="text-gray-600">笔画 (Strokes):</strong> 8</p>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">常用词语 (Words)</h2>
-                        <p class="text-gray-700">怎么呢 (zěn me ne) / 在哪儿呢 (zài nǎr ne)</p>
-                    </div>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">例句 (Sentence)</h2>
-                        <p class="text-gray-700">天都黑了，弟弟怎么还不回家<span class="font-semibold text-blue-600">呢</span>？</p>
-                    </div>
-                    <div class="border-t pt-4 mt-auto text-center">
-                        <h2 class="font-bold mb-2">笔顺演示 (Stroke Order)</h2>
-                        <img src="https://bishun.net/assets/bishun/donghua/bishundonghua-21602.gif" alt="呢 笔顺" class="stroke-order-img">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 卡片 4: 衔 -->
-            <div class="card">
-                <h1 class="hanzi-char text-8xl sm:text-9xl font-bold text-gray-800 mb-6">衔</h1>
-                <div class="space-y-4">
-                    <p><strong class="text-gray-600">拼音 (Pinyin):</strong> <span class="text-lg">xián</span></p>
-                    <p><strong class="text-gray-600">部首 (Radical):</strong> 行</p>
-                    <p><strong class="text-gray-600">笔画 (Strokes):</strong> 11</p>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">常用词语 (Words)</h2>
-                        <p class="text-gray-700">衔接 (xián jiē) / 头衔 (tóu xián) / 衔来 (xián lái)</p>
-                    </div>
-                    <div class="border-t pt-4">
-                        <h2 class="font-bold mb-2">例句 (Sentence)</h2>
-                        <p class="text-gray-700">春天来了，小燕子从南方飞回来，嘴里<span class="font-semibold text-blue-600">衔</span>着泥土和树枝筑巢。</p>
-                    </div>
-                    <div class="border-t pt-4 mt-auto text-center">
-                        <h2 class="font-bold mb-2">笔顺演示 (Stroke Order)</h2>
-                        <img src="https://bishun.net/assets/bishun/donghua/bishundonghua-34900.gif" alt="衔 笔顺" class="stroke-order-img">
-                    </div>
-                </div>
-            </div>
-
+        <!-- Card container -->
+        <div id="card-container">
+            <!-- JavaScript will render the card here -->
         </div>
-    </div>
 
+        <!-- Navigation -->
+        <div class="flex justify-between mt-8">
+            <button id="prev-btn" class="nav-button bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-lg shadow-md">
+                上一个
+            </button>
+            <button id="next-btn" class="nav-button bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-lg shadow-md">
+                下一个
+            </button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const characters = [
+                {
+                    char: '剪',
+                    pinyin: 'jiǎn',
+                    radical: '刀',
+                    strokes: 11,
+                    words: '剪刀 (jiǎn dāo) / 剪纸 (jiǎn zhǐ) / 剪彩 (jiǎn cǎi)',
+                    sentence: '我用<span class="font-semibold text-blue-600">剪</span>刀把这张红纸<span class="font-semibold text-blue-600">剪</span>成了一朵花。',
+                    gif: 'https://bishun.net/assets/bishun/donghua/bishundonghua-21098.gif'
+                },
+                {
+                    char: '翅',
+                    pinyin: 'chì',
+                    radical: '羽',
+                    strokes: 10,
+                    words: '翅膀 (chì bǎng) / 鱼翅 (yú chì) / 展翅 (zhǎn chì)',
+                    sentence: '雄鹰展开<span class="font-semibold text-blue-600">翅</span>膀，在天空中自由地飞翔。',
+                    gif: 'https://bishun.net/assets/bishun/donghua/bishundonghua-32709.gif'
+                },
+                {
+                    char: '呢',
+                    pinyin: 'ne',
+                    radical: '口',
+                    strokes: 8,
+                    words: '怎么呢 (zěn me ne) / 在哪儿呢 (zài nǎr ne)',
+                    sentence: '天都黑了，弟弟怎么还不回家<span class="font-semibold text-blue-600">呢</span>？',
+                    gif: 'https://bishun.net/assets/bishun/donghua/bishundonghua-21602.gif'
+                },
+                {
+                    char: '衔',
+                    pinyin: 'xián',
+                    radical: '行',
+                    strokes: 11,
+                    words: '衔接 (xián jiē) / 头衔 (tóu xián) / 衔来 (xián lái)',
+                    sentence: '春天来了，小燕子从南方飞回来，嘴里<span class="font-semibold text-blue-600">衔</span>着泥土和树枝筑巢。',
+                    gif: 'https://bishun.net/assets/bishun/donghua/bishundonghua-34900.gif'
+                }
+            ];
+
+            let currentIndex = 0;
+
+            const cardContainer = document.getElementById('card-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageIndicator = document.getElementById('page-indicator');
+
+            function renderCard(index) {
+                const charData = characters[index];
+                cardContainer.innerHTML = `
+                    <div class="card">
+                        <h1 class="hanzi-char text-9xl font-bold text-center text-gray-800 mb-8">${charData.char}</h1>
+                        <div class="space-y-4">
+                            <p><strong class="text-gray-600">拼音 (Pinyin):</strong> <span class="text-lg">${charData.pinyin}</span></p>
+                            <p><strong class="text-gray-600">部首 (Radical):</strong> ${charData.radical}</p>
+                            <p><strong class="text-gray-600">笔画 (Strokes):</strong> ${charData.strokes}</p>
+                            <div class="border-t pt-4">
+                                <h2 class="font-bold mb-2">常用词语 (Words)</h2>
+                                <p class="text-gray-700">${charData.words}</p>
+                            </div>
+                            <div class="border-t pt-4">
+                                <h2 class="font-bold mb-2">例句 (Sentence)</h2>
+                                <p class="text-gray-700">${charData.sentence}</p>
+                            </div>
+                            <div class="border-t pt-4 mt-auto text-center">
+                                <h2 class="font-bold mb-2">笔顺演示 (Stroke Order)</h2>
+                                <img src="${charData.gif}" alt="${charData.char} 笔顺" class="stroke-order-img">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                updateNav();
+            }
+
+            function updateNav() {
+                pageIndicator.textContent = `第 ${currentIndex + 1} / ${characters.length} 个字`;
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex === characters.length - 1;
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    renderCard(currentIndex);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentIndex < characters.length - 1) {
+                    currentIndex++;
+                    renderCard(currentIndex);
+                }
+            });
+
+            // Initial render
+            renderCard(currentIndex);
+        });
+    </script>
 </body>
 </html>
-
